@@ -1,0 +1,436 @@
+--- 
+# 'front matter' is required by jekyll. This is an empty implementation. 
+---
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8" />
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
+    <link rel="icon" type="image/png" href="../assets/img/favicon.ico">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>JSP Insights</title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+    <!--     Fonts and icons     -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" />
+    <!-- CSS Files -->
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="../assets/css/light-bootstrap-dashboard.css?v=2.0.1" rel="stylesheet" />
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link href="../assets/css/demo.css" rel="stylesheet" />
+    <link href="../assets/css/jsondiffpatch-html.css" rel="stylesheet" />
+    <link href="../assets/css/jsondiffpatch-annotated.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="sidebar" data-image="../assets/img/sidebar-5.jpg" data-color="blue">
+        <!--
+        Tip 1: You can change the color of the sidebar using: data-color="purple | blue | green | orange | red"
+
+        Tip 2: you can also add an image using data-image tag
+    -->
+        <div class="sidebar-wrapper">
+          <div class="logo">
+            <a href="#" class="simple-text">JSP Insights</a>
+          </div>
+          <ul class="nav">
+          {% for report in site.data.reports reversed %} 
+            <li class="nav-item {% if report.fileNameDateTime == '{& reportFileName &}' %}active{% endif %}">
+              <a class="nav-link" href="{% if forloop.first == true %}reports.html{% else %}./report-{{ report.fileNameDateTime }}.html{% endif %}">
+                <p>{{ report.fullDateTime }}</p>
+              </a>
+            </li> 
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="main-panel">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg " color-on-scroll="500">
+          <div class=" container-fluid  ">
+            <a class="navbar-brand" href="#">Stores Report</a>
+          </div>
+        </nav>
+        <!-- End Navbar -->
+        <div class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-12">
+                <h2>Report generated on {{ site.data.report-{& reportFileName &}.fullDateTime }}</h2>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card ">
+                  <div class="card-header ">
+                    <h4 class="card-title">JSP(F) Count</h4>
+                    <p class="card-category">Over Time</p>
+                  </div>
+                  <div class="card-body ">
+                    <div id="jspCount" class="ct-chart"></div>
+                  </div>
+                  <div class="card-footer ">
+                    <div class="legend">
+                      <i class="fa fa-circle text-info"></i> JSP(F) Count <br/>
+                      <i class="fa fa-circle text-danger"></i> JSP(F)s with Tiles and Struts <br/>
+                      <i class="fa fa-circle text-warning"></i> JSP(F)s with only Tiles definitions <br/>
+                      <i class="fa fa-circle" style="color: #9368E9"></i> JSP(F)s with only Struts entries <br/>
+                      <i class="fa fa-circle" style="color: #87CB16"></i> JSP(F)s without Tiles or Struts <br/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Deltas Between Reports</h3>
+                    <form class="form-inline">
+                      <p class="card-category">Changes between this report and</p>&nbsp;
+                      <select class="custom-select my-1 mr-sm-2" onchange="changeDisplayDeltas.call(this, event)">
+                        {% for report in site.data.reports reversed %}
+                          <option {% if forloop.index == 2 %}selected{% endif %} value="{{ report.fileNameDateTime }}">{{ report.fullDateTime }}</option>
+                        {% endfor %}
+                      </select>
+                    </form>
+                  </div>
+                  <div class="card-body">
+                    <div id="visual-jsp"></div><br/>
+                    <div id="visual-fileData"></div><br/>
+                    <div id="visual-warnings"></div><br/>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <h3>JavaServer Pages Anatomy</h4>
+              </div>
+              <div class="col-md-12">
+                <div class="card card-plain table-plain-bg">
+                  <div class="card-body table-full-width table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <th></th>
+                        <th></th>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Total Number of JSP(F)s</td>
+                          <td>{{ site.data.report-{& reportFileName &}.jsp.count }}</td>
+                        </tr>
+                        <tr>
+                          <td>Total Size of JSP(F)s</td>
+                          <td>{{ site.data.report-{& reportFileName &}.jsp.size }}</td>
+                        </tr>
+                        <tr>
+                          <td>JSP(F)s who have Struts entries and Tiles definitions</td>
+                          <td class="text-success">{{ site.data.report-{& reportFileName &}.jsp.tilesAndStrutsJSPs }}</td>
+                        </tr>
+                        <tr>
+                          <td>JSP(F)s who only have Tiles definitions</td>
+                          <td class="text-warning">{{ site.data.report-{& reportFileName &}.jsp.tilesJSPs }}</td>
+                        </tr>
+                        <tr>
+                          <td>JSP(F)s who only have Struts entries</td>
+                          <td class="text-warning">{{ site.data.report-{& reportFileName &}.jsp.strutsJSPs }}</td>
+                        </tr>
+                        <tr>
+                          <td>JSP(F)s who have neither a Struts entry nor a Tiles definition</td>
+                          <td class="text-danger">{{ site.data.report-{& reportFileName &}.jsp.orphanedJSPs }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="card card-plain table-plain-bg">
+                  <div class="card-header ">
+                    <h4 class="card-title text-warning">Tiles Warnings</h4>
+                    <p class="card-category">Possible orphaned files or deprecated references</p>
+                  </div>
+                  <div class="card-body table-full-width table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <th>Path</th>
+                        <th>Tiles XML</th>
+                        <th>Root Extended Definition</th>
+                        <th>Root Definition Name</th>
+                      </thead>
+                      <tbody>
+                        {% for tileWarning in site.data.report-{& reportFileName &}.warnings.tiles %} 
+                          <tr>
+                            <td>{{ tileWarning.path }}</td>
+                            <td>{{ tileWarning.tilesXML }}</td>
+                            <td>{{ tileWarning.rootExtendsDefinition }}</td>
+                            <td>{{ tileWarning.rootDefinitionName }}</td>
+                          </tr>
+                        {% endfor %} 
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="card card-plain table-plain-bg">
+                  <div class="card-header ">
+                    <h4 class="card-title text-warning">Struts Warnings</h4>
+                    <p class="card-category">Possible orphaned files or deprecated references</p>
+                  </div>
+                  <div class="card-body table-full-width table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <th>Path</th>
+                        <th>Forward Path</th>
+                        <th>Forward Name</th>
+                        <th>Struts XML</th>
+                        <th>Device Type ID</th>
+                        <th>Store Directory</th>
+                      </thead>
+                      <tbody>
+                        {% for strutsWarning in site.data.report-{& reportFileName &}.warnings.struts %} 
+                          <tr>
+                            <td>{{ strutsWarning.path }}</td>
+                            <td>{{ strutsWarning.forwardPath }}</td>
+                            <td>{{ strutsWarning.forwardName }}</td>
+                            <td>{{ strutsWarning.strutsXML }}</td>
+                            <td>{{ strutsWarning.deviceTypeId }}</td>
+                            <td>{{ strutsWarning.storeDir }}</td>
+                          </tr> 
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <h3>Stores Project File Statistics</h4>
+              </div>
+              <div class="col-md-12">
+                <div class="card card-plain table-plain-bg">
+                  <div class="card-header ">
+                    <h4 class="card-title">File Counts</h4>
+                    <p class="card-category">Number of files and directories</p>
+                  </div>
+                  <div class="card-body table-full-width table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Count</th>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>1</td>
+                          <td>File</td>
+                          <td>{{ site.data.report-{& reportFileName &}.fileData.fileCount }}</td>
+                        </tr>
+                        <tr>
+                          <td>2</td>
+                          <td>Directory</td>
+                          <td>{{ site.data.report-{& reportFileName &}.fileData.dirCount }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="card card-plain table-plain-bg">
+                  <div class="card-header ">
+                    <h4 class="card-title">File Extension Count</h4>
+                    <p class="card-category">Unique extensions within the Stores project</p>
+                  </div>
+                  <div class="card-body table-full-width table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <th>#</th>
+                        <th>Extension</th>
+                        <th>Count</th>
+                      </thead>
+                      <tbody>
+                        {% for extension in site.data.report-{& reportFileName &}.fileData.extensionCount %} 
+                          <tr>
+                            <td>{{ forloop.index }}</td>
+                            <td>{{ extension.extensionName }}</td>
+                            <td>{{ extension.extensionCount }}</td>
+                          </tr>
+                        {% endfor %} 
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              {% if site.data.report-{& reportFileName &}.fileData.emptyDirectories.size > 0 %} 
+                <div class="col-md-12">
+                  <div class="card card-plain table-plain-bg">
+                    <div class="card-header ">
+                      <h4 class="card-title">Empty Directories</h4>
+                      <p class="card-category">Number of empty directories in project</p>
+                    </div>
+                    <div class="card-body table-full-width table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <th>#</th>
+                          <th>Directory</th>
+                        </thead>
+                        <tbody>
+                          {% for dir in site.data.report-{& reportFileName &}.fileData.emptyDirectories %} 
+                            <tr>
+                              <td>{{ forloop.index }}</td>
+                              <td>{{ dir }}</td>
+                            </tr>
+                          {% endfor %} 
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div> 
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <footer class="footer">
+          <div class="container">
+            <nav>
+              <ul class="footer-menu">
+              </ul>
+              <p class="copyright text-center"> © <script>
+                  document.write(new Date().getFullYear())
+                </script>
+                <a href="#">kmedz</a></p>
+            </nav>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </body>
+  <!--   Core JS Files   -->
+  <script src="../assets/js/core/jquery.3.2.1.min.js" type="text/javascript"></script>
+  <script src="../assets/js/core/popper.min.js" type="text/javascript"></script>
+  <script src="../assets/js/core/bootstrap.min.js" type="text/javascript"></script>
+  <!--  Plugin for Switches, full documentation here: http://www.jque.re/plugins/version3/bootstrap.switch/ -->
+  <script src="../assets/js/plugins/bootstrap-switch.js"></script>
+  <!--  Google Maps Plugin    -->
+  <!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script> -->
+  <!--  Chartist Plugin  -->
+  <script src="../assets/js/plugins/chartist.min.js"></script>
+  <!--  Notifications Plugin    -->
+  <script src="../assets/js/plugins/bootstrap-notify.js"></script>
+  <!-- Control Center for Light Bootstrap Dashboard: scripts for the example pages etc -->
+  <script src="../assets/js/light-bootstrap-dashboard.js?v=2.0.1" type="text/javascript"></script>
+  <!-- Light Bootstrap Dashboard DEMO methods, don't include it in your project! -->
+  <script src="../assets/js/demo.js"></script>
+  <script src="../assets/js/jsondiffpatch.umd.min.js"></script>
+  <script>
+    $(document).ready(function inlineReady() {
+      window.reports = {{ site.data.reports | jsonify }}
+      window.currentReportFileNameDateTime = '{& reportFileName &}';
+      window.currentReport = getReportByFileNameDateTime(currentReportFileNameDateTime);
+      window.previousReport = getPreviousReportByFileNameDateTime(currentReportFileNameDateTime);
+      var jspCounts = [
+        {% for report in site.data.reports %}
+          {{ report.jsp.count }}{% if forloop.last == false %},{% endif %}
+        {% endfor %}
+      ];
+      new Chartist.Line('#jspCount', {
+        labels: [
+          {% for report in site.data.reports %}'{{ report.iso8601date }}'{% if forloop.last == false %},{% endif %}{% endfor %}
+        ],
+        series: [
+          [
+            {% for report in site.data.reports %}{{ report.jsp.count }}{% if forloop.last == false %},{% endif %}{% endfor %}
+          ],
+          [
+            {% for report in site.data.reports %}{{ report.jsp.tilesAndStrutsJSPs }}{% if forloop.last == false %},{% endif %}{% endfor %}
+          ],
+          [
+            {% for report in site.data.reports %}{{ report.jsp.tilesJSPs }}{% if forloop.last == false %},{% endif %}{% endfor %}
+          ],
+          [
+            {% for report in site.data.reports %}{{ report.jsp.strutsJSPs }}{% if forloop.last == false %},{% endif %}{% endfor %}
+          ],
+          [
+            {% for report in site.data.reports %}{{ report.jsp.orphanedJSPs }}{% if forloop.last == false %},{% endif %}{% endfor %}
+          ],
+        ],
+      }, {
+        high: Math.max(...jspCounts),
+        low: 0,
+        fullWidth: true,
+        height: '400px',
+        axisY: {
+          onlyInteger: false,
+          offset: 50,
+          scaleMinSpace: 12,
+          showGrid: true,
+        },
+        chartPadding: {
+          right: 100
+        }
+      });
+
+      function getReportByFileNameDateTime(fileNameDateTime) {
+        return reports.find(function(report) {
+          return report.fileNameDateTime === fileNameDateTime
+        });
+      }
+
+      function getPreviousReportByFileNameDateTime(fileNameDateTime) {
+        var reportIndex = reports.findIndex(function(report) {
+          return report.fileNameDateTime === fileNameDateTime
+        });
+        var previousReport = reports[reportIndex - 1];
+        // Return the previous report. If we only have one, return the
+        //  report.
+        return previousReport || reports[reportIndex];
+      }
+      
+      window.changeDisplayDeltas = function changeDisplayDeltas(event) {
+        var leftReport = getReportByFileNameDateTime(this.value)
+        var rightReport = currentReport;
+        return displayDeltas(leftReport, rightReport);
+      }
+
+      window.displayDeltas = function displayDeltas(left, right) {
+        var leftJsp = left.jsp;
+        var rightJsp = right.jsp;
+        var leftFileData = left.fileData;
+        var rightFileData = right.fileData;
+        var leftWarnings = left.warnings;
+        var rightWarnings = right.warnings;
+
+        var jspDelta = jsondiffpatch.diff(leftJsp, rightJsp)
+        var fileDataDelta = jsondiffpatch.diff(leftFileData, rightFileData)
+        var warningsDelta = jsondiffpatch.diff(leftWarnings, rightWarnings)
+        
+        document.getElementById('visual-jsp').innerHTML = 
+          jsondiffpatch.formatters.html.format(jspDelta, 
+            leftJsp);
+        document.getElementById('visual-fileData').innerHTML = 
+          jsondiffpatch.formatters.html.format(fileDataDelta, 
+            leftFileData);
+        document.getElementById('visual-warnings').innerHTML = 
+          jsondiffpatch.formatters.html.format(warningsDelta, 
+            leftWarnings);
+        return {
+          jspDelta: jspDelta,
+          fileDataDelta: fileDataDelta,
+          warningsDelta: warningsDelta
+        }
+      }
+
+      if (reports.length > 1) {
+        displayDeltas(previousReport, currentReport);
+      }
+    });
+  </script>
+  <style>
+    .card #jspCount.ct-chart {
+      height: 375px;
+    }
+  </style>
+
+</html>
